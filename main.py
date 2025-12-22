@@ -31,8 +31,8 @@ while True:
                 exit()
         elif evento.type == pygame.MOUSEBUTTONDOWN:
             if evento.button == pygame.BUTTON_LEFT:
-                raton_columna = (raton_x - tablero.borde * tablero.escala - tablero.x) // (tablero.tam_casilla * tablero.escala)
-                raton_fila = (raton_y - tablero.borde * tablero.escala - tablero.y) // (tablero.tam_casilla * tablero.escala)
+                raton_columna = (raton_x - tablero.borde - tablero.x) // tablero.tam_casilla
+                raton_fila = (raton_y - tablero.borde - tablero.y) // tablero.tam_casilla
 
                 if 0 <= raton_fila <= tablero.num_filas - 1 and 0 <= raton_columna <= tablero.num_columnas - 1:
                     if not casilla_seleccionada and (raton_fila, raton_columna) in tablero.piezas:
@@ -43,8 +43,8 @@ while True:
                 if casilla_seleccionada:
                     tablero.piezas[casilla_seleccionada].selecionada = False
 
-                    raton_columna = (raton_x - tablero.borde * tablero.escala - tablero.x) // (tablero.tam_casilla * tablero.escala)
-                    raton_fila = (raton_y - tablero.borde * tablero.escala - tablero.y) // (tablero.tam_casilla * tablero.escala)
+                    raton_columna = (raton_x - tablero.borde - tablero.x) // tablero.tam_casilla
+                    raton_fila = (raton_y - tablero.borde - tablero.y) // tablero.tam_casilla
 
                     tablero.mover_pieza(casilla_seleccionada, (raton_fila, raton_columna))
                     casilla_seleccionada = None

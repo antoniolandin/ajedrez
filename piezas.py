@@ -24,15 +24,14 @@ class Pieza:
         self.tam_x, self.tam_y = self.sprite.get_size()
         self.selecionada = False
         self.color = color
-        self.escala = escala
         self.fila, self.columna = casilla
         self.movida = False
 
     def actualizar_posicion(self, tablero):
-        x = tablero.borde * tablero.escala + tablero.x - self.tam_x // 2 + \
-            (tablero.tam_casilla * tablero.escala) // 2 + self.columna * tablero.tam_casilla * tablero.escala
-        y = tablero.borde * tablero.escala + tablero.y - self.tam_y // 2 + \
-            (tablero.tam_casilla * self.escala) // 2 + self.fila * tablero.tam_casilla * tablero.escala
+        x = tablero.borde + tablero.x - self.tam_x // 2 + \
+            tablero.tam_casilla // 2 + self.columna * tablero.tam_casilla
+        y = tablero.borde + tablero.y - self.tam_y // 2 + \
+            tablero.tam_casilla // 2 + self.fila * tablero.tam_casilla
         self.posicion = (x, y)
 
     def mover(self, tablero, movimiento: tuple[int, int]):
@@ -135,7 +134,7 @@ class Reina(Pieza):
 
 
 class Peon(Pieza):
-    def __init__(self, color: str, casilla: tuple[int, int], estilo: str, escala: float):
+    def __init__(self, color: str, casilla: tuple[int, int], estilo: str, escala):
         super().__init__('peon', color, casilla, estilo, escala)
 
     def posibles_movimientos(self, tablero):

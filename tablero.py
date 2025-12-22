@@ -6,11 +6,11 @@ class Tablero:
     def __init__(self, x: int, y: int, escala: float, estilo="", borde=2, num_filas=8, num_columnas=8):
         self.piezas = {}
         self.sprite = pygame.transform.scale_by(pygame.image.load(f"assets/chess{estilo}/board.png"), escala).convert()
-        self.tam_casilla = (self.sprite.get_size()[0] - borde * 2) // (num_filas * escala)
         self.x, self.y = x, y
         self.estilo = estilo
         self.escala = escala
-        self.borde = borde
+        self.borde = borde * escala
+        self.tam_casilla = (self.sprite.get_size()[0] - self.borde * 2) // num_filas
         self.num_filas = num_filas
         self.num_columnas = num_columnas
 
@@ -64,19 +64,19 @@ class Tablero:
     def dibujar_circulos_pieza(self, pieza: Pieza, pantalla: pygame.Surface):
         for casilla in pieza.posibles_movimientos(self):
             fila, columna = casilla
-            cx = self.borde * self.escala + self.x + columna * self.tam_casilla * self.escala + self.tam_casilla * self.escala // 2
-            cy = self.borde * self.escala + self.y + fila * self.tam_casilla * self.escala + self.tam_casilla * self.escala // 2
+            cx = self.borde + self.x + columna * self.tam_casilla + self.tam_casilla // 2
+            cy = self.borde + self.y + fila * self.tam_casilla + self.tam_casilla // 2
 
             color = (150, 150, 150, 150)
 
             if casilla in self.piezas:
-                radio = self.tam_casilla * self.escala // 2
+                radio = self.tam_casilla // 2
                 diametro = radio * 2
                 superficie_circulo = pygame.Surface((diametro, diametro), pygame.SRCALPHA)
                 borde_donut = int(self.tam_casilla * 0.2)
                 pygame.draw.aacircle(superficie_circulo, color, (radio, radio), radio, borde_donut)
             else:
-                radio = self.tam_casilla * self.escala // 4
+                radio = self.tam_casilla // 4
                 diametro = radio * 2
                 superficie_circulo = pygame.Surface((diametro, diametro), pygame.SRCALPHA)
                 pygame.draw.aacircle(superficie_circulo, color, (radio, radio), radio)
