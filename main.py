@@ -17,6 +17,7 @@ x = LARGO // 2 - tam_x * ESCALA // 2
 y = ALTO // 2 - tam_y * ESCALA // 2
 tablero = Tablero(x, y, escala=ESCALA)
 casilla_seleccionada = None
+sonido_mover_pieza = pygame.mixer.Sound('assets/audio/move.ogg')
 
 while True:
     raton_x, raton_y = pygame.mouse.get_pos()
@@ -46,7 +47,8 @@ while True:
                     raton_columna = (raton_x - tablero.borde - tablero.x) // tablero.tam_casilla
                     raton_fila = (raton_y - tablero.borde - tablero.y) // tablero.tam_casilla
 
-                    tablero.mover_pieza(casilla_seleccionada, (raton_fila, raton_columna))
+                    if tablero.mover_pieza(casilla_seleccionada, (raton_fila, raton_columna)):
+                        sonido_mover_pieza.play()
                     casilla_seleccionada = None
 
     pantalla.fill(BLANCO)
