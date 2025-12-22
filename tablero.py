@@ -63,9 +63,19 @@ class Tablero:
 
     def dibujar(self, pantalla: pygame.Surface):
         pantalla.blit(self.sprite, (self.x, self.y))
+        pieza_seleccionada: Pieza = None
         for pieza in self.piezas.values():
             if not pieza.selecionada:
                 pieza.dibujar(pantalla)
             else:
-                raton_x, raton_y = pygame.mouse.get_pos()
-                pantalla.blit(pieza.sprite, (raton_x - pieza.tam_x // 2, raton_y - pieza.tam_y // 2))
+                pieza_seleccionada = pieza
+
+        if pieza_seleccionada:
+            for casilla in pieza_seleccionada.posibles_movimientos(self):
+                fila, columna = casilla
+                cx = self.borde * self.escala + self.x + columna * self.tam_casilla * self.escala + self.tam_casilla * self.escala // 2
+                cy = self.borde * self.escala + self.y + fila * self.tam_casilla * self.escala + self.tam_casilla * self.escala // 2
+
+                pygame.draw.aacircle(pantalla, (255, 0, 0), (cx, cy), self.tam_casilla * self.escala / 3)
+            raton_x, raton_y = pygame.mouse.get_pos()
+            pantalla.blit(pieza_seleccionada.sprite, (raton_x - pieza.tam_x // 2, raton_y - pieza.tam_y // 2))
