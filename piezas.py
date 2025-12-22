@@ -72,9 +72,10 @@ class Rey(Pieza):
         posibles_movimientos = []
         for fila in range(self.fila - 1, self.fila + 2):
             for columna in range(self.columna - 1, self.columna + 2):
-                casilla = (fila, columna)
-                if (fila != self.fila or columna != self.columna) and not self.casilla_ocupada(tablero, casilla):
-                    posibles_movimientos.append(casilla)
+                if 0 <= fila < tablero.num_filas and 0 <= columna < tablero.num_columnas:
+                    casilla = (fila, columna)
+                    if (fila != self.fila or columna != self.columna) and not self.casilla_ocupada(tablero, casilla):
+                        posibles_movimientos.append(casilla)
 
         return posibles_movimientos
 
