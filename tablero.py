@@ -61,6 +61,27 @@ class Tablero:
             del self.piezas[casilla_inicial]
             self.piezas[casilla_final] = pieza
 
+    def dibujar_circulos_pieza(self, pieza: Pieza, pantalla: pygame.Surface):
+        for casilla in pieza.posibles_movimientos(self):
+            fila, columna = casilla
+            cx = self.borde * self.escala + self.x + columna * self.tam_casilla * self.escala + self.tam_casilla * self.escala // 2
+            cy = self.borde * self.escala + self.y + fila * self.tam_casilla * self.escala + self.tam_casilla * self.escala // 2
+
+            color = (150, 150, 150, 150)
+
+            if casilla in self.piezas:
+                radio = self.tam_casilla * self.escala // 2
+                diametro = radio * 2
+                superficie_circulo = pygame.Surface((diametro, diametro), pygame.SRCALPHA)
+                borde_donut = int(self.tam_casilla * 0.2)
+                pygame.draw.aacircle(superficie_circulo, color, (radio, radio), radio, borde_donut)
+            else:
+                radio = self.tam_casilla * self.escala // 4
+                diametro = radio * 2
+                superficie_circulo = pygame.Surface((diametro, diametro), pygame.SRCALPHA)
+                pygame.draw.aacircle(superficie_circulo, color, (radio, radio), radio)
+            pantalla.blit(superficie_circulo, (cx - radio, cy - radio))
+
     def dibujar(self, pantalla: pygame.Surface):
         pantalla.blit(self.sprite, (self.x, self.y))
         pieza_seleccionada: Pieza = None
@@ -71,11 +92,7 @@ class Tablero:
                 pieza_seleccionada = pieza
 
         if pieza_seleccionada:
-            for casilla in pieza_seleccionada.posibles_movimientos(self):
-                fila, columna = casilla
-                cx = self.borde * self.escala + self.x + columna * self.tam_casilla * self.escala + self.tam_casilla * self.escala // 2
-                cy = self.borde * self.escala + self.y + fila * self.tam_casilla * self.escala + self.tam_casilla * self.escala // 2
+            self.dibujar_circulos_pieza(pieza_seleccionada, pantalla)
 
-                pygame.draw.aacircle(pantalla, (255, 0, 0), (cx, cy), self.tam_casilla * self.escala / 3)
             raton_x, raton_y = pygame.mouse.get_pos()
             pantalla.blit(pieza_seleccionada.sprite, (raton_x - pieza.tam_x // 2, raton_y - pieza.tam_y // 2))

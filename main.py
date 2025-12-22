@@ -1,21 +1,21 @@
 import pygame
 from tablero import Tablero
 
+BLANCO = (255, 255, 255)
+LARGO, ALTO = 1280, 960
+COLORS = ''
+ESCALA = 3
+
 pygame.init()
 pygame.display.set_caption("Ajedrez")
-
-BLANCO = (255, 255, 255)
-LARGO, ALTO = 640, 480
-COLORS = ''
 
 pantalla = pygame.display.set_mode((LARGO, ALTO))
 
 fondo = pygame.transform.scale(pygame.image.load(f"assets/chess{COLORS}/bg.png"), (LARGO, ALTO)).convert()
 tam_x, tam_y = pygame.image.load(f"assets/chess{COLORS}/board.png").get_size()
-escala = 2
-x = LARGO // 2 - (tam_x // 2) * escala
-y = ALTO // 2 - (tam_y // 2) * escala
-tablero = Tablero(x, y, escala=2)
+x = LARGO // 2 - tam_x * ESCALA // 2
+y = ALTO // 2 - tam_y * ESCALA // 2
+tablero = Tablero(x, y, escala=ESCALA)
 casilla_seleccionada = None
 
 while True:
