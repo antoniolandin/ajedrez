@@ -25,21 +25,40 @@ class Pieza:
         self.color = color
         self.escala = escala
         self.fila, self.columna = casilla
-        self.posibles_movimientos = []
+        self.movida = False
 
-    def actualizar_posicion(self, tablero_x: int, tablero_y: int, borde_tablero: int, tam_casilla: tuple[int, int]):
-        x = borde_tablero * self.escala + tablero_x - self.tam_x // 2 + \
-            (tam_casilla * self.escala) // 2 + self.columna * tam_casilla * self.escala
-        y = borde_tablero * self.escala + tablero_y - self.tam_y // 2 + \
-            (tam_casilla * self.escala) // 2 + self.fila * tam_casilla * self.escala
+    def actualizar_posicion(self, tablero):
+        x = tablero.borde * tablero.escala + tablero.x - self.tam_x // 2 + \
+            (tablero.tam_casilla * tablero.escala) // 2 + self.columna * tablero.tam_casilla * tablero.escala
+        y = tablero.borde * tablero.escala + tablero.y - self.tam_y // 2 + \
+            (tablero.tam_casilla * self.escala) // 2 + self.fila * tablero.tam_casilla * tablero.escala
         self.posicion = (x, y)
+
+    def mover(self, tablero, movimiento: tuple[int, int]):
+        self.fila, self.columna = movimiento
+        self.actualizar_posicion(tablero)
+
+        if not self.movida:
+            self.movida = True
 
     def dibujar(self, pantalla):
         pantalla.blit(self.sprite, self.posicion)
 
-    def movimiento_legal(self, casilla: tuple[int, int], piezas: dict) -> bool:
-        fila_final, columna_final = casilla
-        return not (casilla in piezas and piezas[casilla].color == self.color) and (0 <= fila_final <= 7 and 0 <= columna_final <= 7)
+    def posibles_movimientos(self, tablero):
+        posibles_movimientos = []
+        for fila in range(tablero.num_filas):
+            for columna in range(tablero.num_columnas):
+                casilla = (fila, columna)
+                if not self.casilla_ocupada(tablero, casilla):
+                    posibles_movimientos.append(casilla)
+
+        return posibles_movimientos
+
+    def movimiento_legal(self, tablero, movimiento: tuple[int, int]):
+        return movimiento in self.posibles_movimientos(tablero)
+
+    def casilla_ocupada(self, tablero, casilla: tuple[int, int]):
+        return casilla in tablero.piezas and tablero.piezas[casilla].color == self.color
 
     def __str__(self):
         return f"{self.tipo} {self.color}"
@@ -49,18 +68,15 @@ class Rey(Pieza):
     def __init__(self, color: str, casilla: tuple[int, int], estilo: str, escala: float):
         super().__init__('rey', color, casilla, estilo, escala)
 
-    def movimiento_legal(self, casilla: tuple[int, int], piezas: dict) -> bool:
-        nueva_fila, nueva_columna = casilla
-        return abs(self.fila - nueva_fila) <= 1 and abs(self.columna - nueva_columna) <= 1 and super().movimiento_legal(casilla, piezas)
-
-    def actualizar_posibles_movimientos(self, piezas: dict):
+    def posibles_movimientos(self, tablero):
         posibles_movimientos = []
-        for offset_fila in range(-1, 2):
-            for offset_columna in range(-1, 2):
-                if not (offset_fila == 0 and offset_columna == 0):
-                    nueva_casilla = (self.fila + offset_fila, self.columna + offset_columna)
-                    if super().movimiento_legal(nueva_casilla, piezas):
-                        posibles_movimientos.append(nueva_casilla)
+        for fila in range(self.fila - 1, self.fila + 2):
+            for columna in range(self.columna - 1, self.columna + 2):
+                casilla = (fila, columna)
+                if (fila != self.fila or columna != self.columna) and not self.casilla_ocupada(tablero, casilla):
+                    posibles_movimientos.append(casilla)
+
+        return posibles_movimientos
 
 
 class Reina(Pieza):
@@ -72,24 +88,37 @@ class Peon(Pieza):
     def __init__(self, color: str, casilla: tuple[int, int], estilo: str, escala: float):
         super().__init__('peon', color, casilla, estilo, escala)
 
-    def movimiento_legal(self, casilla: tuple[int, int], piezas: dict) -> bool:
-        nueva_fila, nueva_columna = casilla
+    def posibles_movimientos(self, tablero):
+        posibles_movimientos = []
+        if self.color == 'blanco':
+            if self.fila - 1 >= 0:
+                for columna in (self.columna - 1, self.columna + 1):
+                    if 0 <= columna <= tablero.num_columnas:
+                        casilla = (self.fila - 1, columna)
+                        if casilla in tablero.piezas and tablero.piezas[casilla].color != self.color:
+                            posibles_movimientos.append(casilla)
 
-        return (
-            nueva_columna == self.columna
-            and (
-                (self.color == 'blanco' and ((self.fila == 6 and self.fila - nueva_fila == 2) or self.fila - nueva_fila == 1))
-                or (self.color == 'negro' and ((self.fila == 1 and nueva_fila - self.fila == 2) or nueva_fila - self.fila == 1))
-            )
-            and casilla not in piezas
-        ) or (
-            abs(nueva_columna - self.columna) == 1
-            and (
-                ((self.color == 'blanco' and (self.fila - nueva_fila == 1)))
-                or (self.color == 'negro' and (nueva_fila - self.fila == 1))
-            )
-            and casilla in piezas
-        ) and super().movimiento_legal(casilla, piezas)
+                if (self.fila - 1, self.columna) not in tablero.piezas:
+                    posibles_movimientos.append((self.fila - 1, self.columna))
+
+                if not self.movida and self.fila - 2 >= 0 and (self.fila - 2, self.columna) not in tablero.piezas:
+                    posibles_movimientos.append((self.fila - 2, self.columna))
+
+        elif self.color == 'negro':
+            if self.fila + 1 < tablero.num_filas:
+                for columna in (self.columna - 1, self.columna + 1):
+                    if 0 <= columna <= tablero.num_columnas:
+                        casilla = (self.fila + 1, columna)
+                        if casilla in tablero.piezas and tablero.piezas[casilla].color != self.color:
+                            posibles_movimientos.append(casilla)
+
+                if (self.fila + 1, self.columna) not in tablero.piezas:
+                    posibles_movimientos.append((self.fila + 1, self.columna))
+
+                if not self.movida and self.fila + 2 >= 0 and (self.fila + 2, self.columna) not in tablero.piezas:
+                    posibles_movimientos.append((self.fila + 2, self.columna))
+
+        return posibles_movimientos
 
 
 class Alfil(Pieza):
@@ -106,32 +135,24 @@ class Torre(Pieza):
     def __init__(self, color: str, casilla: tuple[int, int], estilo: str, escala: float):
         super().__init__('torre', color, casilla, estilo, escala)
 
-    def movimiento_legal(self, casilla: tuple[int, int], piezas: dict, escala: float) -> bool:
-        if not super().movimiento_legal(casilla, piezas, escala):
-            return False
+    def posibles_movimientos(self, tablero):
+        posibles_movimientos = []
 
-        nueva_fila, nueva_columna = casilla
-        if self.columna == nueva_columna:
-            if nueva_fila > self.fila:
-                for fila in range(self.fila + 1, nueva_fila):
-                    if (fila, self.columna) in piezas:
-                        return False
-            else:
-                for fila in range(nueva_fila + 1, self.fila):
-                    if (fila, self.columna) in piezas:
-                        return False
-            return True
+        for indice, rangos in enumerate((
+                (range(self.fila + 1, tablero.num_filas), range(self.fila - 1, -1, -1)),
+                (range(self.columna + 1, tablero.num_columnas), range(self.columna - 1, -1, -1))
+        )):
+            for rango in rangos:
+                for i in rango:
+                    if indice == 0:
+                        casilla = (i, self.columna)
+                    elif indice == 1:
+                        casilla = (self.fila, i)
 
-        elif self.fila == nueva_fila:
-            if nueva_columna > self.columna:
-                for columna in range(self.columna + 1, nueva_columna):
-                    if (self.fila, columna) in piezas:
-                        return False
-            else:
-                for columna in range(nueva_columna + 1, self.columna):
-                    if (self.fila, columna) in piezas:
-                        return False
+                    if casilla not in tablero.piezas or (casilla in tablero.piezas and tablero.piezas[casilla].color != self.color):
+                        posibles_movimientos.append(casilla)
 
-            return True
+                    if (casilla in tablero.piezas):
+                        break
 
-        return False
+        return posibles_movimientos

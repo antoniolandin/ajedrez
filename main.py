@@ -6,7 +6,6 @@ pygame.display.set_caption("Ajedrez")
 
 BLANCO = (255, 255, 255)
 LARGO, ALTO = 640, 480
-TAM_CASILLA = 22
 COLORS = ''
 
 pantalla = pygame.display.set_mode((LARGO, ALTO))
@@ -35,7 +34,7 @@ while True:
                 raton_columna = (raton_x - tablero.borde * tablero.escala - tablero.x) // (tablero.tam_casilla * tablero.escala)
                 raton_fila = (raton_y - tablero.borde * tablero.escala - tablero.y) // (tablero.tam_casilla * tablero.escala)
 
-                if 0 <= raton_fila <= 7 and 0 <= raton_columna <= 7:
+                if 0 <= raton_fila <= tablero.num_filas - 1 and 0 <= raton_columna <= tablero.num_columnas - 1:
                     if not casilla_seleccionada and (raton_fila, raton_columna) in tablero.piezas:
                         casilla_seleccionada = (raton_fila, raton_columna)
                         tablero.piezas[casilla_seleccionada].selecionada = True
