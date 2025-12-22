@@ -61,6 +61,10 @@ class Tablero:
             del self.piezas[casilla_inicial]
             self.piezas[casilla_final] = pieza
 
+            return True
+
+        return False
+
     def dibujar_circulos_pieza(self, pieza: Pieza, pantalla: pygame.Surface):
         for casilla in pieza.posibles_movimientos(self):
             fila, columna = casilla
@@ -73,7 +77,7 @@ class Tablero:
                 radio = self.tam_casilla // 2
                 diametro = radio * 2
                 superficie_circulo = pygame.Surface((diametro, diametro), pygame.SRCALPHA)
-                borde_donut = int(self.tam_casilla * 0.2)
+                borde_donut = int(self.tam_casilla * 0.1)
                 pygame.draw.aacircle(superficie_circulo, color, (radio, radio), radio, borde_donut)
             else:
                 radio = self.tam_casilla // 4
