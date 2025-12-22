@@ -60,27 +60,28 @@ class Pieza:
 
     def movimiento_legal_base(self, tablero, casilla: tuple[int, int]):
         return (
-            (0 <= casilla[0] < tablero.num_filas and 0 <= casilla[1] < tablero.num_columnas)
+            (self.fila != casilla[0] or self.columna != casilla[1])
+            and (0 <= casilla[0] < tablero.num_filas and 0 <= casilla[1] < tablero.num_columnas)
             and not (casilla in tablero.piezas and tablero.piezas[casilla].color == self.color)
         )
 
     def movimiento_diagonal(self, tablero):
         posibles_movimientos = []
 
-        for combinacion in itertools.product((lambda x: x + 1, lambda x: x - 1), repeat=2):
-            op_fila, op_columna = combinacion
-            fila, columna = op_fila(self.fila), op_columna(self.columna)
+        for combinacion in itertools.product((1, -1), repeat=2):
+            offset_fila, offset_columna = combinacion
+            fila, columna = self.fila + offset_fila, self.columna + offset_columna
             while (0 <= fila < tablero.num_filas and 0 <= columna < tablero.num_columnas):
                 casilla = (fila, columna)
 
-                if casilla not in tablero.piezas or (casilla in tablero.piezas and tablero.piezas[casilla].color != self.color):
+                if self.movimiento_legal_base(tablero, casilla):
                     posibles_movimientos.append(casilla)
 
                 if (casilla in tablero.piezas):
                     break
 
-                fila = op_fila(fila)
-                columna = op_columna(columna)
+                fila = fila + offset_fila
+                columna = columna + offset_columna
 
         return posibles_movimientos
 
@@ -98,7 +99,7 @@ class Pieza:
                     elif indice == 1:
                         casilla = (self.fila, i)
 
-                    if casilla not in tablero.piezas or (casilla in tablero.piezas and tablero.piezas[casilla].color != self.color):
+                    if self.movimiento_legal_base(tablero, casilla):
                         posibles_movimientos.append(casilla)
 
                     if (casilla in tablero.piezas):
@@ -107,7 +108,7 @@ class Pieza:
         return posibles_movimientos
 
     def __str__(self):
-        return f"{self.tipo} {self.color}"
+        return f"{self.tipo} {self.color}".title()
 
 
 class Rey(Pieza):
@@ -118,10 +119,9 @@ class Rey(Pieza):
         posibles_movimientos = []
         for fila in range(self.fila - 1, self.fila + 2):
             for columna in range(self.columna - 1, self.columna + 2):
-                if 0 <= fila < tablero.num_filas and 0 <= columna < tablero.num_columnas:
-                    casilla = (fila, columna)
-                    if (fila != self.fila or columna != self.columna) and self.movimiento_legal_base(tablero, casilla):
-                        posibles_movimientos.append(casilla)
+                casilla = (fila, columna)
+                if self.movimiento_legal_base(tablero, casilla):
+                    posibles_movimientos.append(casilla)
 
         return posibles_movimientos
 
@@ -139,36 +139,32 @@ class Peon(Pieza):
         super().__init__('peon', color, casilla, estilo, escala)
 
     def posibles_movimientos(self, tablero):
-        posibles_movimientos = []
+        def aux(self, tablero, i):
+            posibles_movimientos = []
+
+            # movimiento diagonal
+            for columna in (self.columna - 1, self.columna + 1):
+                casilla = (self.fila + i, columna)
+                if self.movimiento_legal_base(tablero, casilla) and casilla in tablero.piezas:
+                    posibles_movimientos.append(casilla)
+
+            # movimiento recto
+            casilla = (self.fila + i, self.columna)
+            if casilla not in tablero.piezas and self.movimiento_legal_base(tablero, casilla):
+                posibles_movimientos.append(casilla)
+
+            # doble salto
+            if not self.movida:
+                casilla = (self.fila + i * 2, self.columna)
+                if self.movimiento_legal_base(tablero, casilla) and casilla not in tablero.piezas:
+                    posibles_movimientos.append((self.fila + i * 2, self.columna))
+
+            return posibles_movimientos
+
         if self.color == 'blanco':
-            if self.fila - 1 >= 0:
-                for columna in (self.columna - 1, self.columna + 1):
-                    if 0 <= columna <= tablero.num_columnas:
-                        casilla = (self.fila - 1, columna)
-                        if casilla in tablero.piezas and tablero.piezas[casilla].color != self.color:
-                            posibles_movimientos.append(casilla)
-
-                if (self.fila - 1, self.columna) not in tablero.piezas:
-                    posibles_movimientos.append((self.fila - 1, self.columna))
-
-                if not self.movida and self.fila - 2 >= 0 and (self.fila - 2, self.columna) not in tablero.piezas:
-                    posibles_movimientos.append((self.fila - 2, self.columna))
-
+            return aux(self, tablero, -1)
         elif self.color == 'negro':
-            if self.fila + 1 < tablero.num_filas:
-                for columna in (self.columna - 1, self.columna + 1):
-                    if 0 <= columna <= tablero.num_columnas:
-                        casilla = (self.fila + 1, columna)
-                        if casilla in tablero.piezas and tablero.piezas[casilla].color != self.color:
-                            posibles_movimientos.append(casilla)
-
-                if (self.fila + 1, self.columna) not in tablero.piezas:
-                    posibles_movimientos.append((self.fila + 1, self.columna))
-
-                if not self.movida and self.fila + 2 >= 0 and (self.fila + 2, self.columna) not in tablero.piezas:
-                    posibles_movimientos.append((self.fila + 2, self.columna))
-
-        return posibles_movimientos
+            return aux(self, tablero, 1)
 
 
 class Alfil(Pieza):
