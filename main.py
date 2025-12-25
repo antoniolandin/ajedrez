@@ -1,6 +1,7 @@
 import pygame
 from tablero import Tablero
 from piezas import Pieza
+from temporizador import Temporizador
 import copy
 
 BLANCO = (255, 255, 255)
@@ -25,8 +26,18 @@ sonido_jacke = pygame.mixer.Sound('assets/audio/jacke.ogg')
 jugadores = ('blanco', 'negro')
 num_movimientos = 0
 color_turno = jugadores[num_movimientos % 2]
-fuente = pygame.Font(None, LARGO // 10)
+fuente_victoria = pygame.Font(None, LARGO // 10)
 ganador = None
+
+evento_tiempo = pygame.USEREVENT + 1
+pygame.time.set_timer(evento_tiempo, 1000)
+temporizadores = [10 * 60, 10 * 60]
+fuente_temporizador = pygame.Font(None, LARGO // 20)
+temporizadores = [
+    Temporizador(10 * 60, tablero.x, tablero.y + tablero.tam_y, fuente_temporizador, BLANCO),
+    Temporizador(10 * 60, tablero.x, tablero.y, fuente_temporizador, BLANCO)
+]
+temporizadores[1].y = tablero.y - temporizadores[1].tam_y
 
 
 def detectar_jacke(color: str, piezas: dict, num_filas: int, num_columnas: int):
@@ -64,7 +75,6 @@ def detectar_jacke_mate(color: str, piezas: dict[tuple[int, int], Pieza], num_fi
                 temp_piezas[movimiento] = temp_pieza
 
                 if not detectar_jacke(color, temp_piezas, num_filas, num_columnas):
-                    print(temp_pieza)
                     return False
 
     return True
@@ -136,16 +146,24 @@ while True:
                                         sonido_jacke.play()
                         casilla_seleccionada = None
 
+        elif evento.type == evento_tiempo:
+            pygame.time.set_timer(evento_tiempo, 1000)
+            temporizadores[num_movimientos % 2].tiempo_restante -= 1
+            temporizadores[num_movimientos % 2].actualizar()
+
     pantalla.fill(BLANCO)
     pantalla.blit(fondo, (0, 0))
     tablero.dibujar(pantalla)
 
     if ganador:
-        texto_superficie = fuente.render(f"Gana el jugador {ganador}", True, NEGRO)
+        texto_superficie = fuente_victoria.render(f"Gana el jugador {ganador}", True, NEGRO)
         tam_x, tam_y = texto_superficie.get_size()
         x = LARGO // 2 - tam_x // 2
         y = ALTO // 2 - tam_y // 2
         pygame.draw.rect(pantalla, BLANCO, (x, y, tam_x, tam_y))
         pantalla.blit(texto_superficie, (x, y))
+
+    for temporizador in temporizadores:
+        temporizador.dibujar(pantalla)
 
     pygame.display.flip()

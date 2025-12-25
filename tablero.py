@@ -7,6 +7,7 @@ class Tablero:
         self.piezas = {}
         self.sprite = pygame.transform.scale_by(pygame.image.load(f"assets/chess{estilo}/board.png"), escala).convert()
         self.x, self.y = x, y
+        self.tam_x, self.tam_y = self.sprite.get_size()
         self.estilo = estilo
         self.escala = escala
         self.borde = borde * escala
