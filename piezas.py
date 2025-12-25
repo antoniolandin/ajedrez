@@ -114,7 +114,7 @@ class Rey(Pieza):
     def __init__(self, color: str, casilla: tuple[int, int], estilo: str, escala: float):
         super().__init__('rey', color, casilla, estilo, escala)
 
-    def posibles_movimientos(self, piezas, num_filas, num_columnas):
+    def posibles_movimientos(self, piezas: dict[tuple[int, int], Pieza], num_filas: int, num_columnas: int):
         posibles_movimientos = []
         for fila in range(self.fila - 1, self.fila + 2):
             for columna in range(self.columna - 1, self.columna + 2):
@@ -122,22 +122,30 @@ class Rey(Pieza):
                 if self.movimiento_legal_base(piezas, num_filas, num_columnas, casilla):
                     posibles_movimientos.append(casilla)
 
+        # movimientos de enroque
         if not self.movida:
+            # obtener los posibles movimientos del rival
+            posibles_movimientos_rival = []
+            for pieza in piezas.values():
+                if pieza.color != self.color and pieza.tipo != 'rey':
+                    posibles_movimientos_rival += pieza.posibles_movimientos(piezas, num_filas, num_columnas)
+            # enroque corto
             if (self.fila, num_columnas - 1) in piezas:
                 pieza = piezas[(self.fila, num_columnas - 1)]
                 if pieza.tipo == 'torre' and not pieza.movida:
                     vacia = True
                     for columna in range(self.columna + 1, pieza.columna):
-                        if (self.fila, columna) in piezas:
+                        if (self.fila, columna) in piezas or (self.fila, columna) in posibles_movimientos_rival:
                             vacia = False
                     if vacia:
                         posibles_movimientos.append((self.fila, pieza.columna - 1))
+            # enroque largo
             if (self.fila, 0) in piezas:
                 pieza = piezas[(self.fila, 0)]
                 if pieza.tipo == 'torre' and not pieza.movida:
                     vacia = True
                     for columna in range(1, self.columna):
-                        if (self.fila, columna) in piezas:
+                        if (self.fila, columna) in piezas or (self.fila, columna) in posibles_movimientos_rival:
                             vacia = False
                     if vacia:
                         posibles_movimientos.append((self.fila, 2))

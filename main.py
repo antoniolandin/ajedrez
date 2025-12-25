@@ -31,7 +31,6 @@ ganador = None
 
 evento_tiempo = pygame.USEREVENT + 1
 pygame.time.set_timer(evento_tiempo, 1000)
-temporizadores = [10 * 60, 10 * 60]
 fuente_temporizador = pygame.Font(None, LARGO // 20)
 temporizadores = [
     Temporizador(10 * 60, tablero.x, tablero.y + tablero.tam_y, fuente_temporizador, BLANCO),
@@ -80,6 +79,12 @@ def detectar_jacke_mate(color: str, piezas: dict[tuple[int, int], Pieza], num_fi
     return True
 
 
+def mover_pieza(piezas: dict[tuple[int, int], Pieza], casilla: tuple[int, int], movimiento: tuple[int, int]):
+    pieza = piezas.pop(casilla)
+    pieza.mover(tablero, movimiento)
+    piezas[movimiento] = pieza
+
+
 while True:
     raton_x, raton_y = pygame.mouse.get_pos()
 
@@ -96,16 +101,16 @@ while True:
                 if not ganador:
                     raton_columna = (raton_x - tablero.borde - tablero.x) // tablero.tam_casilla
                     raton_fila = (raton_y - tablero.borde - tablero.y) // tablero.tam_casilla
-
                     color_turno = jugadores[num_movimientos % 2]
+                    casilla = (raton_fila, raton_columna)
 
                     if 0 <= raton_fila <= tablero.num_filas - 1 and 0 <= raton_columna <= tablero.num_columnas - 1:
                         if (
                             not casilla_seleccionada
-                            and (raton_fila, raton_columna) in tablero.piezas
-                            and tablero.piezas[(raton_fila, raton_columna)].color == color_turno
+                            and casilla in tablero.piezas
+                            and tablero.piezas[casilla].color == color_turno
                         ):
-                            casilla_seleccionada = (raton_fila, raton_columna)
+                            casilla_seleccionada = casilla
                             tablero.piezas[casilla_seleccionada].seleccionada = True
         elif evento.type == pygame.MOUSEBUTTONUP:
             if evento.button == pygame.BUTTON_LEFT:
@@ -116,8 +121,8 @@ while True:
 
                         raton_columna = (raton_x - tablero.borde - tablero.x) // tablero.tam_casilla
                         raton_fila = (raton_y - tablero.borde - tablero.y) // tablero.tam_casilla
-
                         movimiento = (raton_fila, raton_columna)
+
                         color_turno = jugadores[num_movimientos % 2]
 
                         if (
@@ -125,33 +130,24 @@ while True:
                             and pieza_seleccionada.movimiento_legal(tablero.piezas, tablero.num_filas, tablero.num_columnas, movimiento)
                         ):
                             temp_piezas = copy.deepcopy(tablero.piezas)
+
+                            # si es un enroque
                             if (
                                 pieza_seleccionada.tipo == 'rey'
                                 and not pieza_seleccionada.movida
                                 and raton_fila in (0, tablero.num_columnas - 1)
                                 and raton_columna in (2, tablero.num_columnas - 2)
                             ):
-                                rey_temp = temp_piezas.pop(casilla_seleccionada)
                                 if raton_columna == 2:
-                                    torre_temp = temp_piezas.pop((raton_fila, 0))
-                                    torre_temp.mover(tablero, (raton_fila, 3))
-                                    temp_piezas[(raton_fila, 3)] = torre_temp
-                                    rey_temp.mover(tablero, (raton_fila, 2))
-                                    temp_piezas[(raton_fila, 2)] = rey_temp
+                                    mover_pieza(temp_piezas, (raton_fila, 0), (raton_fila, 3))
+                                    mover_pieza(temp_piezas, casilla_seleccionada, (raton_fila, 2))
                                 elif raton_columna == tablero.num_columnas - 2:
-                                    torre_temp = temp_piezas.pop((raton_fila, tablero.num_columnas - 1))
-                                    torre_temp.mover(tablero, (raton_fila, tablero.num_columnas - 2))
-                                    temp_piezas[(raton_fila, tablero.num_columnas - 2)] = torre_temp
-                                    rey_temp.mover(tablero, (raton_fila, tablero.num_columnas - 3))
-                                    temp_piezas[(raton_fila, tablero.num_columnas - 3)] = rey_temp
+                                    mover_pieza(temp_piezas, (raton_fila, tablero.num_columnas - 1), (raton_fila, tablero.num_columnas - 2))
+                                    mover_pieza(temp_piezas, casilla_seleccionada, (raton_fila, tablero.num_columnas - 3))
                             else:
-                                pieza_temp = temp_piezas[casilla_seleccionada]
-                                pieza_temp.fila, pieza_temp.columna = raton_fila, raton_columna
-                                pieza_temp.mover(tablero, movimiento)
-                                del temp_piezas[casilla_seleccionada]
-                                temp_piezas[movimiento] = pieza_temp
+                                mover_pieza(temp_piezas, casilla_seleccionada, movimiento)
 
-                            # si hay jacke, invalidar movimiento
+                            # si el movimiento produce jacke, invalidarlo
                             if not detectar_jacke(color_turno, temp_piezas, tablero.num_filas, tablero.num_columnas):
                                 tablero.piezas = temp_piezas
                                 sonido_mover_pieza.play()
