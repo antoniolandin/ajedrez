@@ -55,18 +55,12 @@ class Tablero:
     def mover_pieza(self, casilla_inicial: tuple[int, int], casilla_final: tuple[int, int]):
         fila_final, columna_final = casilla_final
         pieza: Pieza = self.piezas[casilla_inicial]
-        if pieza.movimiento_legal(self, casilla_final):
-            pieza.mover(self, casilla_final)
-
-            del self.piezas[casilla_inicial]
-            self.piezas[casilla_final] = pieza
-
-            return True
-
-        return False
+        pieza.mover(self, casilla_final)
+        del self.piezas[casilla_inicial]
+        self.piezas[casilla_final] = pieza
 
     def dibujar_circulos_pieza(self, pieza: Pieza, pantalla: pygame.Surface):
-        for casilla in pieza.posibles_movimientos(self):
+        for casilla in pieza.posibles_movimientos(self.piezas, self.num_filas, self.num_columnas):
             fila, columna = casilla
             cx = self.borde + self.x + columna * self.tam_casilla + self.tam_casilla // 2
             cy = self.borde + self.y + fila * self.tam_casilla + self.tam_casilla // 2
@@ -90,7 +84,7 @@ class Tablero:
         pantalla.blit(self.sprite, (self.x, self.y))
         pieza_seleccionada: Pieza = None
         for pieza in self.piezas.values():
-            if not pieza.selecionada:
+            if not pieza.seleccionada:
                 pieza.dibujar(pantalla)
             else:
                 pieza_seleccionada = pieza
