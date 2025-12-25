@@ -122,6 +122,26 @@ class Rey(Pieza):
                 if self.movimiento_legal_base(piezas, num_filas, num_columnas, casilla):
                     posibles_movimientos.append(casilla)
 
+        if not self.movida:
+            if (self.fila, num_columnas - 1) in piezas:
+                pieza = piezas[(self.fila, num_columnas - 1)]
+                if pieza.tipo == 'torre' and not pieza.movida:
+                    vacia = True
+                    for columna in range(self.columna + 1, pieza.columna):
+                        if (self.fila, columna) in piezas:
+                            vacia = False
+                    if vacia:
+                        posibles_movimientos.append((self.fila, pieza.columna - 1))
+            if (self.fila, 0) in piezas:
+                pieza = piezas[(self.fila, 0)]
+                if pieza.tipo == 'torre' and not pieza.movida:
+                    vacia = True
+                    for columna in range(1, self.columna):
+                        if (self.fila, columna) in piezas:
+                            vacia = False
+                    if vacia:
+                        posibles_movimientos.append((self.fila, 2))
+
         return posibles_movimientos
 
 

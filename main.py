@@ -125,14 +125,35 @@ while True:
                             and pieza_seleccionada.movimiento_legal(tablero.piezas, tablero.num_filas, tablero.num_columnas, movimiento)
                         ):
                             temp_piezas = copy.deepcopy(tablero.piezas)
-                            pieza_temp = temp_piezas[casilla_seleccionada]
-                            pieza_temp.fila, pieza_temp.columna = raton_fila, raton_columna
-                            del temp_piezas[casilla_seleccionada]
-                            temp_piezas[movimiento] = pieza_temp
+                            if (
+                                pieza_seleccionada.tipo == 'rey'
+                                and not pieza_seleccionada.movida
+                                and raton_fila in (0, tablero.num_columnas - 1)
+                                and raton_columna in (2, tablero.num_columnas - 2)
+                            ):
+                                rey_temp = temp_piezas.pop(casilla_seleccionada)
+                                if raton_columna == 2:
+                                    torre_temp = temp_piezas.pop((raton_fila, 0))
+                                    torre_temp.mover(tablero, (raton_fila, 3))
+                                    temp_piezas[(raton_fila, 3)] = torre_temp
+                                    rey_temp.mover(tablero, (raton_fila, 2))
+                                    temp_piezas[(raton_fila, 2)] = rey_temp
+                                elif raton_columna == tablero.num_columnas - 2:
+                                    torre_temp = temp_piezas.pop((raton_fila, tablero.num_columnas - 1))
+                                    torre_temp.mover(tablero, (raton_fila, tablero.num_columnas - 2))
+                                    temp_piezas[(raton_fila, tablero.num_columnas - 2)] = torre_temp
+                                    rey_temp.mover(tablero, (raton_fila, tablero.num_columnas - 3))
+                                    temp_piezas[(raton_fila, tablero.num_columnas - 3)] = rey_temp
+                            else:
+                                pieza_temp = temp_piezas[casilla_seleccionada]
+                                pieza_temp.fila, pieza_temp.columna = raton_fila, raton_columna
+                                pieza_temp.mover(tablero, movimiento)
+                                del temp_piezas[casilla_seleccionada]
+                                temp_piezas[movimiento] = pieza_temp
 
                             # si hay jacke, invalidar movimiento
                             if not detectar_jacke(color_turno, temp_piezas, tablero.num_filas, tablero.num_columnas):
-                                tablero.mover_pieza(casilla_seleccionada, movimiento)
+                                tablero.piezas = temp_piezas
                                 sonido_mover_pieza.play()
                                 num_movimientos += 1
 
@@ -144,6 +165,7 @@ while True:
                                         ganador = jugadores[(num_movimientos + 1) % 2]
                                     else:
                                         sonido_jacke.play()
+
                         casilla_seleccionada = None
 
         elif evento.type == evento_tiempo:
