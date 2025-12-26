@@ -45,7 +45,7 @@ def detectar_jacke(color: str, piezas: dict, num_filas: int, num_columnas: int):
         return False
 
     for pieza in piezas.values():
-        if pieza != rey and (rey.fila, rey.columna) in pieza.posibles_movimientos(piezas, num_filas, num_columnas):
+        if pieza != rey and (rey.fila, rey.columna) in pieza.movimientos_pseudolegales(piezas, num_filas, num_columnas):
             return True
 
     return False
@@ -68,10 +68,7 @@ def detectar_jacke_mate(color: str, piezas: dict[tuple[int, int], Pieza], num_fi
             # ver si se va el jacke al mover
             for movimiento in posibles_movimientos:
                 temp_piezas = copy.deepcopy(piezas)
-                temp_pieza = temp_piezas[pos_pieza]
-                temp_pieza.fila, temp_pieza.columna = movimiento[0], movimiento[1]
-                del temp_piezas[pos_pieza]
-                temp_piezas[movimiento] = temp_pieza
+                mover_pieza(temp_piezas, (pos_pieza), movimiento)
 
                 if not detectar_jacke(color, temp_piezas, num_filas, num_columnas):
                     return False
@@ -129,8 +126,6 @@ while True:
                             pieza_seleccionada.color == color_turno
                             and pieza_seleccionada.movimiento_legal(tablero.piezas, tablero.num_filas, tablero.num_columnas, movimiento)
                         ):
-                            temp_piezas = copy.deepcopy(tablero.piezas)
-
                             # si es un enroque
                             if (
                                 pieza_seleccionada.tipo == 'rey'
@@ -139,28 +134,26 @@ while True:
                                 and raton_columna in (2, tablero.num_columnas - 2)
                             ):
                                 if raton_columna == 2:
-                                    mover_pieza(temp_piezas, (raton_fila, 0), (raton_fila, 3))
-                                    mover_pieza(temp_piezas, casilla_seleccionada, (raton_fila, 2))
+                                    mover_pieza(tablero.piezas, (raton_fila, 0), (raton_fila, 3))
+                                    mover_pieza(tablero.piezas, casilla_seleccionada, (raton_fila, 2))
                                 elif raton_columna == tablero.num_columnas - 2:
-                                    mover_pieza(temp_piezas, (raton_fila, tablero.num_columnas - 1), (raton_fila, tablero.num_columnas - 2))
-                                    mover_pieza(temp_piezas, casilla_seleccionada, (raton_fila, tablero.num_columnas - 3))
+                                    mover_pieza(tablero.piezas, (raton_fila, tablero.num_columnas - 1), (raton_fila, tablero.num_columnas - 2))
+                                    mover_pieza(tablero.piezas, casilla_seleccionada, (raton_fila, tablero.num_columnas - 3))
                             else:
-                                mover_pieza(temp_piezas, casilla_seleccionada, movimiento)
+                                mover_pieza(tablero.piezas, casilla_seleccionada, movimiento)
 
-                            # si el movimiento produce jacke, invalidarlo
-                            if not detectar_jacke(color_turno, temp_piezas, tablero.num_filas, tablero.num_columnas):
-                                tablero.piezas = temp_piezas
+                            num_movimientos += 1
+
+                            # si le haces jacke al otro rey, reproducir sonido
+                            color_turno = jugadores[num_movimientos % 2]
+                            if detectar_jacke(color_turno, tablero.piezas, tablero.num_filas, tablero.num_columnas):
+                                # comprobar si es jacke mate
+                                if detectar_jacke_mate(color_turno, tablero.piezas, tablero.num_filas, tablero.num_columnas):
+                                    ganador = jugadores[(num_movimientos + 1) % 2]
+                                else:
+                                    sonido_jacke.play()
+                            else:
                                 sonido_mover_pieza.play()
-                                num_movimientos += 1
-
-                                # si le haces jacke al otro rey, reproducir sonido
-                                color_turno = jugadores[num_movimientos % 2]
-                                if detectar_jacke(color_turno, tablero.piezas, tablero.num_filas, tablero.num_columnas):
-                                    # comprobar si es jacke mate
-                                    if detectar_jacke_mate(color_turno, tablero.piezas, tablero.num_filas, tablero.num_columnas):
-                                        ganador = jugadores[(num_movimientos + 1) % 2]
-                                    else:
-                                        sonido_jacke.play()
 
                         casilla_seleccionada = None
 
