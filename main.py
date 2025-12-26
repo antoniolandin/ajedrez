@@ -33,8 +33,8 @@ evento_tiempo = pygame.USEREVENT + 1
 pygame.time.set_timer(evento_tiempo, 1000)
 fuente_temporizador = pygame.Font(None, LARGO // 20)
 temporizadores = [
-    Temporizador(10 * 60, tablero.x, tablero.y + tablero.tam_y, fuente_temporizador, BLANCO),
-    Temporizador(10 * 60, tablero.x, tablero.y, fuente_temporizador, BLANCO)
+    Temporizador(5, tablero.x, tablero.y + tablero.tam_y, fuente_temporizador, BLANCO),
+    Temporizador(5, tablero.x, tablero.y, fuente_temporizador, BLANCO)
 ]
 temporizadores[1].y = tablero.y - temporizadores[1].tam_y
 
@@ -158,9 +158,12 @@ while True:
                         casilla_seleccionada = None
 
         elif evento.type == evento_tiempo:
-            pygame.time.set_timer(evento_tiempo, 1000)
-            temporizadores[num_movimientos % 2].tiempo_restante -= 1
-            temporizadores[num_movimientos % 2].actualizar()
+            if temporizadores[num_movimientos % 2].tiempo_restante > 0:
+                pygame.time.set_timer(evento_tiempo, 1000)
+                temporizadores[num_movimientos % 2].tiempo_restante -= 1
+                temporizadores[num_movimientos % 2].actualizar()
+                if temporizadores[num_movimientos % 2].tiempo_restante <= 0:
+                    ganador = jugadores[(num_movimientos + 1) % 2]
 
     pantalla.fill(BLANCO)
     pantalla.blit(fondo, (0, 0))
