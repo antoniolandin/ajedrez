@@ -33,8 +33,8 @@ evento_tiempo = pygame.USEREVENT + 1
 pygame.time.set_timer(evento_tiempo, 1000)
 fuente_temporizador = pygame.Font(None, LARGO // 20)
 temporizadores = [
-    Temporizador(5, tablero.x, tablero.y + tablero.tam_y, fuente_temporizador, BLANCO),
-    Temporizador(5, tablero.x, tablero.y, fuente_temporizador, BLANCO)
+    Temporizador(600, tablero.x, tablero.y + tablero.tam_y, fuente_temporizador, BLANCO),
+    Temporizador(600, tablero.x, tablero.y, fuente_temporizador, BLANCO)
 ]
 temporizadores[1].y = tablero.y - temporizadores[1].tam_y
 
